@@ -1,56 +1,56 @@
 name: CI/CD Pipeline
 
-# Trigger the workflow on push to the main branch or pull requests targeting the main branch
 on:
   push:
     branches:
-      - main   # Trigger pipeline when changes are pushed to the main branch
-  pull_request:
-    branches:
-      - main   # Trigger when a pull request is made targeting the main branch
+      - main  # Trigger on push to the main branch
 
 jobs:
-  build_and_deploy:
-    runs-on: ubuntu-latest   # GitHub will run this job on an Ubuntu runner
+  build:
+    runs-on: ubuntu-latest  # Use Ubuntu as the build environment
 
     steps:
-    # Step 1: Checkout the code from the repository
-    - name: Checkout repository
-      uses: actions/checkout@v2   # This checks out the repository code so that the workflow can access it
+      # Step 1: Checkout code from GitHub
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    # Step 2: Set up Docker Buildx (required for building Docker images)
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1   # This sets up Docker Buildx, which is needed to build Docker images
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'  # Use Python 3.9
 
-    # Step 3: Cache Docker layers to speed up builds (updated to actions/cache@v3)
-    - name: Cache Docker layers
-      uses: actions/cache@v3   # Updated from v2 to v3
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
+      # Step 3: Install dependencies from requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    # Step 4: Build the Docker image using the Dockerfile
-    - name: Build Docker image
-      run: |
-        docker build -t diet-analysis .   # This builds the Docker image from the Dockerfile in the repository
+      # Step 4: Run tests (Optional)
+      - name: Run tests
+        run: |
+          python -m unittest discover tests/  # Run all tests in the 'tests' directory
 
-    # Step 5: Log in to Docker Hub
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2   # This logs into Docker Hub (or another container registry)
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}   # Use the Docker Hub username stored in GitHub secrets
-        password: ${{ secrets.DOCKER_PASSWORD }}   # Use the Docker Hub password stored in GitHub secrets
+      # Step 5: Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t diet-analysis .
 
-    # Step 6: Push the Docker image to Docker Hub
-    - name: Push Docker image to Docker Hub
-      run: |
-        docker tag diet-analysis yourdockerhubusername/diet-analysis   # Tag the Docker image with your Docker Hub username
-        docker push yourdockerhubusername/diet-analysis   # Push the image to Docker Hub
+      # Step 6: Log in to Docker Hub using the secrets you added to GitHub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}  # Uses your Docker Hub username stored in GitHub Secrets
+          password: ${{ secrets.DOCKER_PASSWORD }}  # Uses your Docker Hub password stored in GitHub Secrets
 
-    # Step 7: Simulate deployment (you can replace this step with actual deployment steps later)
-    - name: Simulate Deployment
-      run: |
-        docker run -it diet-analysis   # This simulates deployment by running the Docker container locally
+      # Step 7: Push Docker image to Docker Hub (Optional)
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push devpatel09/diet-analysis  # Replace with your Docker Hub username
+
+      # Step 8: (Optional) Trigger deployment using SSH (if you want to simulate a deployment)
+      # Uncomment and configure this section if you are deploying your Docker image
+      # - name: Deploy to server (optional)
+      #   run: |
+      #     ssh user@server "docker pull devpatel09/diet-analysis && docker run -d devpatel09/diet-analysis"
+
 
