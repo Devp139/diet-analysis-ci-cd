@@ -33,7 +33,7 @@ jobs:
       # Step 5: Build Docker image
       - name: Build Docker image
         run: |
-          docker build -t diet-analysis .
+          docker build -t devpatel09/diet-analysis:latest .  # Tag the image with your username and latest tag
 
       # Step 6: Log in to Docker Hub using the secrets you added to GitHub
       - name: Log in to Docker Hub
@@ -42,15 +42,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}  # Uses your Docker Hub username stored in GitHub Secrets
           password: ${{ secrets.DOCKER_PASSWORD }}  # Uses your Docker Hub password stored in GitHub Secrets
 
-      # Step 7: Push Docker image to Docker Hub (Optional)
+      # Step 7: Push Docker image to Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
-          docker push devpatel09/diet-analysis  # Replace with your Docker Hub username
+          docker push devpatel09/diet-analysis:latest  # Ensure you push the image with the correct tag
 
       # Step 8: (Optional) Trigger deployment using SSH (if you want to simulate a deployment)
       # Uncomment and configure this section if you are deploying your Docker image
       # - name: Deploy to server (optional)
       #   run: |
-      #     ssh user@server "docker pull devpatel09/diet-analysis && docker run -d devpatel09/diet-analysis"
+      #     ssh user@server "docker pull devpatel09/diet-analysis:latest && docker run -d devpatel09/diet-analysis"
 
 
